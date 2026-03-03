@@ -3,6 +3,7 @@ package com.coloranalysisbackend.controller;
 import com.coloranalysisbackend.service.PythonClientService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,11 +26,36 @@ public class ImageController {
      * 把上传的图像发送给本地的 Python 服务进行 Canny 边缘检测
      */
     @PostMapping(value = "/canny", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<byte[]> canny(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<Map<String,Object>> canny(@RequestParam("file") MultipartFile file,
+                                                    @RequestParam(value = "config", required = false) String config) throws IOException {
         byte[] input = file.getBytes();
-        byte[] output = pythonClientService.callCanny(input);
+        Map<String,Object> cfg = config == null ? Map.of() : Map.of(); // TODO parse JSON if needed
+        Map<String,Object> result = pythonClientService.detectCanny(input, cfg);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(value = "/correction/points", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String,Object>> detectPoints(@RequestParam("file") MultipartFile file) throws IOException {
+        byte[] input = file.getBytes();
+        Map<String,Object> result = pythonClientService.detectPoints(input);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(value = "/correction/align", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> align(@RequestParam("model") MultipartFile model,
+                                        @RequestParam("image") MultipartFile image) throws IOException {
+        byte[] out = pythonClientService.alignImage(model.getBytes(), image.getBytes());
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .body(output);
+                .body(out);
+    }
+
+    @PostMapping(value = "/hsv/process", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> hsvProcess(@RequestParam("image") MultipartFile image,
+                                             @RequestParam("mask") MultipartFile mask) throws IOException {
+        byte[] out = pythonClientService.hsvProcess(image.getBytes(), mask.getBytes());
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .body(out);
     }
 }
