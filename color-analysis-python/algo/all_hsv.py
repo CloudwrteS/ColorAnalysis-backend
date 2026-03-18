@@ -346,14 +346,13 @@ COLOR_CLUSTERS_HSV = {
     "white": [0, 0, 255]
 }
 
-# 运行代码
-json_file = 'butterfly.json'
-images_folder = 'lj2_aligned_colored_images'
-raw_hsv_csv = 'lj2_all_hsv_results.csv'
-process_images_HSV(json_file, images_folder, raw_hsv_csv)
+if __name__ == '__main__':
+    json_file = 'butterfly.json'
+    images_folder = 'lj2_aligned_colored_images'
+    raw_hsv_csv = 'lj2_all_hsv_results.csv'
+    process_images_HSV(json_file, images_folder, raw_hsv_csv)
 
-json_file = 'edge.json'
-# images_folder = 'test'
-images_folder = 'lj2_aligned_colored_images'
-raw_hsv_csv = 'lj2_all_edge_hsv_results.csv'
-process_images_HSV(json_file, images_folder, raw_hsv_csv)
+    json_file = 'edge.json'
+    images_folder = 'lj2_aligned_colored_images'
+    raw_hsv_csv = 'lj2_all_edge_hsv_results.csv'
+    process_images_HSV(json_file, images_folder, raw_hsv_csv)

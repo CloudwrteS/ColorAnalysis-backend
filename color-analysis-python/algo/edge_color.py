@@ -86,7 +86,7 @@ def process_csv(input_file, output_file, chunk_size=1000):
             writer.writerows(rows_to_write)
 
 
-# 示例用法
-input_file = 'lj2_all_edge_hsv_results.csv'
-output_file = 'lj2_edge_main_color.csv'
-process_csv(input_file, output_file, chunk_size=100)
+if __name__ == '__main__':
+    input_file = 'lj2_all_edge_hsv_results.csv'
+    output_file = 'lj2_edge_main_color.csv'
+    process_csv(input_file, output_file, chunk_size=100)

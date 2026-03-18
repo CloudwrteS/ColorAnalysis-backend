@@ -18,62 +18,57 @@ region_id_list = [
 ]
 
 
-# 逐块读取文件并处理
-chunk_size = 50  # 每块读取的行数
-aggregated_results = []  # 用于存储最终结果
+def extract_region_hsv(hsv_pixels, region_id, region_ids):
+    if region_id in region_ids:
+        return np.array(hsv_pixels)
+    return None
 
-# 按块读取文件并处理
-for chunk in pd.read_csv('lj2_all_hsv_results.csv', chunksize=chunk_size):
-    # 将HSV像素字符串转换为列表
-    chunk['hsv_pixels'] = chunk['hsv_pixels'].apply(json.loads)
 
-    # 根据 region_id 提取对应区域的 HSV 值
-    def extract_region_hsv(hsv_pixels, region_id, region_id_list):
-        if region_id in region_id_list:
-            return np.array(hsv_pixels)
-        return None
+def calculate_entropy_channels(hsv_array):
+    if hsv_array is not None and len(hsv_array) > 0:
+        h_values = hsv_array[:, 0]
+        s_values = hsv_array[:, 1]
+        v_values = hsv_array[:, 2]
 
-    # 计算H、S、V通道的熵值
-    def calculate_entropy(hsv_array):
-        if hsv_array is not None and len(hsv_array) > 0:
-            H = hsv_array[:, 0]  # Hue
-            S = hsv_array[:, 1]  # Saturation
-            V = hsv_array[:, 2]  # Value
+        h_entropy = entropy(np.histogram(h_values, bins=36)[0])
+        s_entropy = entropy(np.histogram(s_values, bins=10)[0])
+        v_entropy = entropy(np.histogram(v_values, bins=10)[0])
 
-            # 计算每个通道的熵
-            h_entropy = entropy(np.histogram(H, bins=36)[0])
-            s_entropy = entropy(np.histogram(S, bins=10)[0])
-            v_entropy = entropy(np.histogram(V, bins=10)[0])
+        return h_entropy, s_entropy, v_entropy
+    return None, None, None
 
-            return h_entropy, s_entropy, v_entropy
-        return None, None, None
 
-    # 处理每一行数据
-    for idx, row in chunk.iterrows():
-        # 提取当前图像的HSV像素和region_id
-        hsv_pixels = row['hsv_pixels']
-        region_id = row['region_id']
+def process_entropy_csv(input_csv, output_csv, chunk_size=50):
+    aggregated_results = []
 
-        # 获取每个区域的HSV数据
-        hsv_data = extract_region_hsv(hsv_pixels, region_id, region_id_list)
+    for chunk in pd.read_csv(input_csv, chunksize=chunk_size):
+        chunk['hsv_pixels'] = chunk['hsv_pixels'].apply(json.loads)
 
-        # 如果该区域在标签集里
-        if hsv_data is not None:
-            # 计算该区域的H、S、V通道的熵值
-            h_entropy, s_entropy, v_entropy = calculate_entropy(hsv_data)
+        for _, row in chunk.iterrows():
+            hsv_pixels = row['hsv_pixels']
+            region_id = row['region_id']
 
-            # 如果计算成功，将熵值添加到结果中
-            if h_entropy is not None and s_entropy is not None and v_entropy is not None:
-                aggregated_results.append([row['image_name'], row['region_id'], row['region_alias'], h_entropy, s_entropy, v_entropy])
+            hsv_data = extract_region_hsv(hsv_pixels, region_id, region_id_list)
+            if hsv_data is not None:
+                h_entropy, s_entropy, v_entropy = calculate_entropy_channels(hsv_data)
+                if h_entropy is not None and s_entropy is not None and v_entropy is not None:
+                    aggregated_results.append([
+                        row['image_name'],
+                        row['region_id'],
+                        row['region_alias'],
+                        h_entropy,
+                        s_entropy,
+                        v_entropy
+                    ])
 
-    # 处理完当前块后清空数据，释放内存
-    del chunk
+    aggregated_df = pd.DataFrame(
+        aggregated_results,
+        columns=['image_name', 'region_id', 'region_alias', 'H_entropy', 'S_entropy', 'V_entropy']
+    )
+    aggregated_df.to_csv(output_csv, index=False)
+    return aggregated_df
 
-# 最终输出每个区域的熵值
-aggregated_df = pd.DataFrame(aggregated_results, columns=['image_name', 'region_id', 'region_alias', 'H_entropy', 'S_entropy', 'V_entropy'])
 
-# 存储为CSV文件
-aggregated_df.to_csv('lj2_image_entropy_region_results.csv', index=False)
-
-# 输出结果
-print(aggregated_df)
+if __name__ == '__main__':
+    output_df = process_entropy_csv('lj2_all_hsv_results.csv', 'lj2_image_entropy_region_results.csv')
+    print(output_df)

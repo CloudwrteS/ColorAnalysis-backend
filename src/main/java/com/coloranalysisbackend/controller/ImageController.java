@@ -1,6 +1,8 @@
 package com.coloranalysisbackend.controller;
 
 import com.coloranalysisbackend.service.PythonClientService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import java.util.Map;
@@ -17,9 +19,11 @@ import java.io.IOException;
 public class ImageController {
 
     private final PythonClientService pythonClientService;
+    private final ObjectMapper objectMapper;
 
-    public ImageController(PythonClientService pythonClientService) {
+    public ImageController(PythonClientService pythonClientService, ObjectMapper objectMapper) {
         this.pythonClientService = pythonClientService;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -29,7 +33,10 @@ public class ImageController {
     public ResponseEntity<Map<String,Object>> canny(@RequestParam("file") MultipartFile file,
                                                     @RequestParam(value = "config", required = false) String config) throws IOException {
         byte[] input = file.getBytes();
-        Map<String,Object> cfg = config == null ? Map.of() : Map.of(); // TODO parse JSON if needed
+        Map<String,Object> cfg = Map.of();
+        if (config != null && !config.isBlank()) {
+            cfg = objectMapper.readValue(config, new TypeReference<Map<String,Object>>() {});
+        }
         Map<String,Object> result = pythonClientService.detectCanny(input, cfg);
         return ResponseEntity.ok(result);
     }
