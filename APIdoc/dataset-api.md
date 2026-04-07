@@ -3,10 +3,12 @@
 本模块由以下后端文件构成：
 
 * `com.coloranalysisbackend.model.Dataset` - 数据集实体
+* `com.coloranalysisbackend.model.DatasetGroup` - 数据集分组实体
 * `com.coloranalysisbackend.model.Image` - 图像记录实体
-* `com.coloranalysisbackend.repository.DatasetRepository` / `ImageRepository` - JPA 数据访问
+* `com.coloranalysisbackend.repository.DatasetRepository` / `DatasetGroupRepository` / `ImageRepository` - JPA 数据访问
 * `com.coloranalysisbackend.service.DatasetService` - 业务逻辑（本地存储、元数据）
 * `com.coloranalysisbackend.controller.DatasetController` - REST 接口
+* `com.coloranalysisbackend.controller.DatasetGroupController` - 分组接口
 
 > 当前实现为**本地文件存储**，使用 `storage.base-dir` 配置的目录；
 > 将来可替换为 MinIO/AWS S3 的 presigned URL 方案，`DatasetService` 只需改写 `storeImage`。
@@ -23,9 +25,21 @@ Content-Type: application/json
 {
   "name": "string",
   "description": "string",
-  "ownerId": "user-id"
+  "ownerId": "user-id",
+  "scene": "儿童发展评估",
+  "groupId": "group-id"
 }
 ```
+
+`scene` 选填，可选值之一：
+- `儿童发展评估`
+- `教育研究`
+- `精细控制能力评估`
+- `色彩认知研究`
+- `其他`
+
+`groupId` 选填，需为已存在分组 ID。
+
 **成功响应** 200
 ```json
 {
@@ -33,6 +47,8 @@ Content-Type: application/json
   "name": "...",
   "description": "...",
   "ownerId": "...",
+  "scene": "...",
+  "groupId": "...",
   "storagePrefix": "<same-as-id>",
   "fileCount": 0
 }
@@ -42,6 +58,14 @@ Content-Type: application/json
 ```
 GET /api/datasets
 ```
+
+支持可选筛选参数：
+- `groupId`
+- `scene`
+
+例如：
+`GET /api/datasets?groupId=xxx&scene=教育研究`
+
 返回数据集数组。
 
 ### 3. 获取单个数据集
@@ -75,6 +99,34 @@ Content-Type: multipart/form-data
 GET /api/datasets/{id}/images
 ```
 返回本数据集在数据库中登记的所有 `Image`。
+
+### 6. 创建数据集分组
+```
+POST /api/dataset-groups
+Content-Type: application/json
+```
+
+请求体：
+```json
+{
+  "name": "幼儿园样本",
+  "description": "2026春季批次"
+}
+```
+
+其中：
+- `name` 必填
+- `description` 选填
+
+### 7. 查询分组列表
+```
+GET /api/dataset-groups
+```
+
+### 8. 查询分组详情
+```
+GET /api/dataset-groups/{id}
+```
 
 ---
 

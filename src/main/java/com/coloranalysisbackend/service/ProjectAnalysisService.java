@@ -138,4 +138,25 @@ public class ProjectAnalysisService {
             throw new IllegalArgumentException("json serialize error: " + e.getMessage());
         }
     }
+
+    /** 更新项目（name/config 均可选） */
+    public Project updateProject(String projectId, String name, Map<String, Object> config) {
+        Project p = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("project not found: " + projectId));
+        if (name != null && !name.isBlank()) {
+            p.setName(name);
+        }
+        if (config != null) {
+            p.setConfig(toJson(config));
+        }
+        return projectRepository.save(p);
+    }
+
+    /** 删除项目及其所有任务记录 */
+    public void deleteProject(String projectId) {
+        projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("project not found: " + projectId));
+        taskRepository.deleteAll(taskRepository.findByProjectId(projectId));
+        projectRepository.deleteById(projectId);
+    }
 }

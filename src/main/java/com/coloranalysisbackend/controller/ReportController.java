@@ -1,6 +1,8 @@
 package com.coloranalysisbackend.controller;
 
 import com.coloranalysisbackend.service.ReportService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reports")
+@Tag(name = "报告管理", description = "分析结果汇总、单图报告与导出")
 public class ReportController {
     private final ReportService reportService;
 
@@ -20,6 +23,7 @@ public class ReportController {
     }
 
     @GetMapping("/projects/{projectId}/summary")
+    @Operation(summary = "查询项目汇总报告")
     public ResponseEntity<?> projectSummary(@PathVariable String projectId) {
         try {
             Map<String, Object> summary = reportService.getProjectSummary(projectId);
@@ -30,6 +34,7 @@ public class ReportController {
     }
 
     @GetMapping("/projects/{projectId}/images/{imageName}")
+    @Operation(summary = "查询单图明细报告")
     public ResponseEntity<?> singleImageReport(@PathVariable String projectId,
                                                @PathVariable String imageName) {
         try {
@@ -41,6 +46,7 @@ public class ReportController {
     }
 
     @GetMapping("/projects/{projectId}/export")
+    @Operation(summary = "导出项目报告", description = "支持csv、xlsx、pdf")
     public ResponseEntity<?> export(@PathVariable String projectId,
                                     @RequestParam(defaultValue = "csv") String format) {
         try {

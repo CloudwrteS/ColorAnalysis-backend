@@ -119,4 +119,37 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   INDEX (task_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 10) dataset_groups（数据集分组）
+CREATE TABLE IF NOT EXISTS dataset_groups (
+  id CHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- datasets 扩展字段：scene（所属场景）与 group_id（分组）
+ALTER TABLE datasets
+  ADD COLUMN IF NOT EXISTS scene VARCHAR(64) NULL,
+  ADD COLUMN IF NOT EXISTS group_id CHAR(36) NULL;
+
+-- 分组外键（MySQL 8.0 IF NOT EXISTS for FK 不可用，使用保护性写法）
+SET @fk_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'datasets'
+    AND CONSTRAINT_NAME = 'fk_datasets_group'
+    AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+);
+
+SET @sql_stmt := IF(
+  @fk_exists = 0,
+  'ALTER TABLE datasets ADD CONSTRAINT fk_datasets_group FOREIGN KEY (group_id) REFERENCES dataset_groups(id)',
+  'SELECT "fk_datasets_group already exists"'
+);
+PREPARE stmt FROM @sql_stmt;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 -- 额外建议：生产可考虑使用 BINARY(16) 存储 UUID 并添加额外索引或分区策略

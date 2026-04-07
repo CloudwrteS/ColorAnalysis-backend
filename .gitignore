@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 /todo推进计划记录
+APIdoc/apifox-import-guide.md
 
 ### STS ###
 .apt_generated

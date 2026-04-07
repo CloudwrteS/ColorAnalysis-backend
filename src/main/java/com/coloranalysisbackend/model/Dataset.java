@@ -25,4 +25,10 @@ public class Dataset {
 
     @Column(name = "file_count")
     private Integer fileCount;
+
+    // 选填：所属场景
+    private String scene;
+
+    @Column(name = "group_id")
+    private String groupId;
 }
