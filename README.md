@@ -172,25 +172,4 @@ cd ..
 
 ## API 文档
 
-### 认证接口
-
-- `POST /api/auth/login` - 用户登录
-- `POST /api/auth/register` - 用户注册
-
-### 数据集接口
-
-- `POST /api/datasets` - 创建数据集
-- `GET /api/datasets` - 获取数据集列表
-- `POST /api/datasets/{id}/images/upload` - 上传图像
-
-### 项目接口
-
-- `POST /api/projects` - 创建分析项目
-- `POST /api/projects/{id}/run` - 执行项目分析
-
-### 报告接口
-
-- `GET /api/reports/projects/{projectId}/summary` - 获取项目汇总
-- `GET /api/reports/projects/{projectId}/export?format=csv` - 导出报告
-
 详细 API 文档可通过 Swagger 访问：`http://localhost:8080/swagger-ui.html`

@@ -1,3 +1,4 @@
+.gitignore
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -5,6 +6,10 @@ target/
 !**/src/test/**/target/
 /todo推进计划记录
 APIdoc/apifox-import-guide.md
+论文模板.txt
+开题报告.txt
+/论文
+
 
 ### STS ###
 .apt_generated

@@ -76,6 +76,21 @@ public class TemplateController {
         }
     }
 
+    /** 单独上传/替换模板图片 */
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "上传或替换模板图片")
+    public ResponseEntity<?> uploadImage(@PathVariable("id") String id,
+                                         @RequestParam("imageFile") MultipartFile imageFile) {
+        try {
+            Template t = templateService.updateTemplate(id, null, null, imageFile);
+            return ResponseEntity.ok(t);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (IOException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
     /** 删除模板（有项目引用时拒绝） */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除模板")
